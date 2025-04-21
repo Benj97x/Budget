@@ -1,0 +1,147 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Budgetgeschützt</title>
+  <script>
+    const password = "Mybestwife";
+    const eingabe = prompt("Passwort eingeben:");
+    if (eingabe !== password) {
+      document.write("Zugriff verweigert.");
+      throw new Error("Falsches Passwort");
+    }
+  </script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; }
+    h1 { text-align: center; font-size: 1.8em; }
+    table { width: 100%; border-collapse: collapse; background-color: white; overflow-x: auto; display: block; }
+    th, td { padding: 12px 8px; text-align: center; border: 1px solid #ccc; font-size: 1em; }
+    th { background-color: #ddd; }
+    input[type="number"] { width: 80px; padding: 8px; font-size: 1em; }
+    #savings-container { margin: 20px 0; text-align: center; }
+    #savings-status { font-weight: bold; margin-top: 10px; }
+    .bar-container { margin: 30px 0; }
+    .bar { height: 30px; background-color: #ddd; margin-bottom: 12px; position: relative; border-radius: 6px; }
+    .bar-fill { height: 100%; background-color: #4caf50; width: 0; position: absolute; top: 0; left: 0;
+                text-align: right; color: white; padding-right: 8px; box-sizing: border-box; border-radius: 6px; }
+    #bar-remaining { background-color: #2196F3; }
+    #export-btn { display: block; width: 100%; max-width: 300px; margin: 30px auto; padding: 12px;
+                  background-color: #007acc; color: white; border: none; font-size: 1.1em;
+                  border-radius: 6px; cursor: pointer; }
+    #export-btn:hover { background-color: #005fa3; }
+    tfoot td { font-weight: bold; background-color: #eee; }
+  </style>
+</head>
+<body>
+
+<h1>Monatliche Budgetübersicht</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>Kategorie</th>
+      <th>Geplant (CHF)</th>
+      <th>Tatsächlich (CHF)</th>
+    </tr>
+  </thead>
+  <tbody id="budget-rows">
+    <tr><td>Krankenkasse</td><td>500</td><td><input type="number" value="0"></td></tr>
+    <tr><td>Handy/Internet</td><td>60</td><td><input type="number" value="0"></td></tr>
+    <tr><td>Auto</td><td>700</td><td><input type="number" value="0"></td></tr>
+    <tr><td>Versicherungen</td><td>183</td><td><input type="number" value="0"></td></tr>
+    <tr><td>Serafe</td><td>28</td><td><input type="number" value="0"></td></tr>
+    <tr><td>Abos</td><td>100</td><td><input type="number" value="0"></td></tr>
+    <tr><td>Lebensmittel</td><td>400</td><td><input type="number" value="0"></td></tr>
+    <tr><td>Essen gehen</td><td>20</td><td><input type="number" value="0"></td></tr>
+    <tr><td>Shoppen</td><td>30</td><td><input type="number" value="0"></td></tr>
+    <tr><td>Miete + Parkplatz</td><td>2500</td><td><input type="number" value="0"></td></tr>
+  </tbody>
+  <tfoot>
+    <tr><td>Gesamt</td><td id="totalPlanned">4521</td><td id="totalActual">0</td></tr>
+    <tr><td>Verfügbar (von 5000 CHF)</td><td></td><td id="remaining">5000</td></tr>
+  </tfoot>
+</table>
+
+<div id="savings-container">
+  <label for="savingsGoal">Sparziel (CHF): </label>
+  <input type="number" id="savingsGoal" value="0" style="padding: 8px; font-size: 1em;">
+  <div id="savings-status">Noch kein Ziel gesetzt.</div>
+</div>
+
+<div class="bar-container">
+  <div class="bar"><div class="bar-fill" id="bar-actual">0 CHF</div></div>
+  <div class="bar"><div class="bar-fill" id="bar-remaining">0 CHF</div></div>
+</div>
+
+<button id="export-btn">Daten exportieren</button>
+
+<script>
+  const inputs = document.querySelectorAll('input[type="number"]');
+  const totalActual = document.getElementById('totalActual');
+  const remaining = document.getElementById('remaining');
+  const savingsGoalInput = document.getElementById('savingsGoal');
+  const savingsStatus = document.getElementById('savings-status');
+  const barActual = document.getElementById('bar-actual');
+  const barRemaining = document.getElementById('bar-remaining');
+  const income = 5000;
+
+  function update() {
+    let sum = 0;
+    inputs.forEach((input, index) => { if (index < 10) sum += Number(input.value); });
+    totalActual.textContent = sum;
+    let diff = income - sum;
+    remaining.textContent = diff;
+    const goal = Number(savingsGoalInput.value);
+    if (goal > 0) {
+      if (diff >= goal) {
+        savingsStatus.textContent = `Ziel erreicht! (${diff} CHF übrig)`;
+        savingsStatus.style.color = "green";
+      } else {
+        savingsStatus.textContent = `Ziel nicht erreicht – es fehlen ${goal - diff} CHF`;
+        savingsStatus.style.color = "red";
+      }
+    } else {
+      savingsStatus.textContent = "Noch kein Ziel gesetzt.";
+      savingsStatus.style.color = "black";
+    }
+    let percentActual = Math.min((sum / income) * 100, 100);
+    let percentRemaining = Math.max((diff / income) * 100, 0);
+    barActual.style.width = percentActual + "%";
+    barActual.textContent = sum + " CHF";
+    barRemaining.style.width = percentRemaining + "%";
+    barRemaining.textContent = diff + " CHF";
+  }
+
+  inputs.forEach(input => input.addEventListener('input', update));
+  update();
+
+  document.getElementById('export-btn').addEventListener('click', () => {
+    let text = "Budget-Auswertung\n";
+
+
+    const rows = document.querySelectorAll('#budget-rows tr');
+    rows.forEach(row => {
+      const cols = row.querySelectorAll('td');
+      const category = cols[0].textContent;
+      const planned = cols[1].textContent;
+      const actual = cols[2].querySelector('input').value;
+      text += `${category}: Geplant ${planned} CHF / Tatsächlich ${actual} CHF
+`;
+    });
+    text += `
+Gesamt: ${totalActual.textContent} CHF
+Verfügbar: ${remaining.textContent} CHF`;
+    const blob = new Blob([text], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'budget-auswertung.txt';
+    link.click();
+    URL.revokeObjectURL(url);
+  });
+</script>
+
+</body>
+</html>
